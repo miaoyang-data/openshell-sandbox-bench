@@ -34,7 +34,7 @@ def discover_working_models() -> list[str]:
         methods = m.get("supportedGenerationMethods", [])
         if "generateContent" in methods and "flash" in name.lower() and "image" not in name.lower() and "audio" not in name.lower():
             candidates.append(name)
-    # 优先把稳定性高的 2.5 / 2.0 / 3.0 排在前面，把正在拥堵的 3.8-flash 放最后兜底
+    # Prioritize stable flash variants first; deprioritize high-demand 3.8-flash as fallback
     candidates.sort(key=lambda x: (1 if "3.8-flash" in x else 0, x))
     return candidates or ["gemini-3.8-flash"]
 
@@ -97,7 +97,7 @@ def run_gemini_stream(prompt: str) -> tuple[float, float, int]:
             if ttft_ms is None:
                 ttft_ms = total_ms
 
-            # 锁定第一个成功的模型放首位，保证所有测试在同一模型上保持基准一致性
+            # Pin the first responsive model to the front to maintain baseline consistency across runs
             if ACTIVE_MODELS[0] != model_id:
                 ACTIVE_MODELS.remove(model_id)
                 ACTIVE_MODELS.insert(0, model_id)
